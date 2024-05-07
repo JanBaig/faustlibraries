@@ -58,7 +58,7 @@ it = library("interpolators.lib");
 si = library("signals.lib");
 
 declare name "Faust Basic Element Library";
-declare version "1.15.0";
+declare version "1.16.0";
 
 //=============================Conversion Tools===========================================
 //========================================================================================
@@ -1608,7 +1608,7 @@ declare ifNcNo license "MIT-style STK-4.3 license";
 // * `I`: input to select (int, numbered from 0, known at compile time)
 // * `N`: number of inputs (int, known at compile time, N > I)
 //
-// There is also cselector for selecting among complex input signals of the form (real,imag).
+// There is also `cselector` for selecting among complex input signals of the form (real,imag).
 //
 //-----------------------------------------------------------------------------
 selector(i,n) = par(j, n, S(i, j))    with { S(i,i) = _; S(i,j) = !; };
@@ -1801,6 +1801,33 @@ downSample(freq) = sAndH(hold)
 with {
     hold = time%int(ma.SR/freq) == 0;
 };
+
+
+//--------------------------`(ba.)downSampleCV`---------------------------
+//
+// A version of `ba.downSample` where the frequency parameter has
+// been replaced by an `amount` parameter that is in the range zero
+// to one. WARNING: this function doesn't change the rate of a
+// signal, it just holds samples...
+//
+// #### Usage
+// ```
+// _ : downSampleCV(amount) : _
+// ```
+// Where:
+//
+// * `amount`: The amount of down-sampling to perform [0..1]
+//-----------------------------------------------------------------------
+downSampleCV(amt) = sAndH(hold)
+with {
+    // If amt is 0, then freq should be ma.SR/2.
+    // If amt is 1, then freq should be 491.
+    // 491 is derived from listening to the Serum synthesizer.
+    freq = amt : it.remap(0, 1, hz2midikey(ma.SR/2), hz2midikey(491)) : midikey2hz;
+    hold = time%int(ma.SR/freq) == 0;
+};
+
+declare downSampleCV author "Romain Michon/David Braun";
 
 
 //------------------`(ba.)peakhold`---------------------------
